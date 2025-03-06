@@ -191,6 +191,33 @@ predicted_value <- predict(test_model, newdata= singleStudent)
 print(predicted_value)
 ```
 
+Accuracy Check
+
+Calculate Root Mean Squared Error which is a value that tells us the average amount of deviation from true values. We use this to compare performance across different models. This value is sensitive to larger differences, so we still encounter differences greater than the resulting RMSE.
+```{r}
+mse <- sqrt(mean((perIndex - predictions)^2))
+
+print(mse)
+```
+
+Average difference between Predicted vs. Actual
+```{r}
+absDiff <- abs(results_df$Actual-results_df$Predicted)
+meanDiff <- sum(absDiff)/length(absDiff)
+print(meanDiff)
+```
+
+Check for values within certain ranges
+```{r}
+withinX <- ifelse(absDiff < 3, 1, 0)
+print(sum(withinX)/length(withinX))
+```
+
+Check for values within certain percentages
+```{r}
+accuracyWithinX <- ifelse(abs(results_df$Predicted-results_df$Actual) < 0.10*results_df$Actual,1,0)
+print(sum(accuracyWithinX/length(accuracyWithinX)))
+```
 
 
 
