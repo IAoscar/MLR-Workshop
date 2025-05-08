@@ -1,13 +1,12 @@
 ---
 title: "Predicting Student Performance with Multiple Linear Regression"
-author: "Your Name Here"
-date: "2025-05-08"
+author: "Your Name"
 output: html_document
 ---
 
 Input data set using read.csv()
 ```{r}
-df <- read.csv("/Users/yourUserName/Desktop/Student_Performance.csv", header = TRUE)
+df <- read.csv("/Users/YourUserName/Desktop/Student_Performance.csv", header = TRUE)
 ```
 
 To find your file path make sure the csv file is located on your desktop for easy access. 
@@ -73,7 +72,7 @@ print(head(clean_df))
 ```
 
 Remove target variable for multicollinearity analysis:
-To put it simply, multicollinearity is a problem caused when two or more predictor variables in your model have a high correlation. Correlation between predictors is bad, but correlation from predictor to target is great! 
+To put it simply, multicollinearity is a problem caused when two or more predictor variables in your model have a high correlation. Correlation between predictors can be bad, but correlation from predictor to target is great! 
 ```{r}
 variable_df<- clean_df[, !names(clean_df) %in% 'Performance.Index']
 print(head(variable_df))
@@ -96,6 +95,7 @@ corrplot(corrmat, method = "color", type = "full",
 
 80-20 Data Split: We must split our data in order to train it on the 80% and test it on the 20%. This is a very common split used in data science.
 ```{r}
+set.seed(123)
 nrows <- nrow(clean_df)
 trainsize <- round(0.8*nrows)
 trainindex <- sample(1:nrows, trainsize, replace = FALSE)
@@ -106,7 +106,7 @@ test_df <- clean_df[-trainindex, ]
 
 Build model
 ```{r}
-train_model <- lm(train_df$Performance.Index ~ train_df$Hours.Studied + train_df$Previous.Scores + train_df$Extracurricular.Activities + train_df$Sleep.Hours + train_df$Sample.Question.Papers.Practiced, data = train_df)
+train_model <- lm(Performance.Index ~ Hours.Studied + Previous.Scores + Extracurricular.Activities + Sleep.Hours + Sample.Question.Papers.Practiced, data = train_df)
 
 summary(train_model)
 ```
@@ -118,7 +118,7 @@ library(car)
 vif(train_model)
 ```
 
-Step() iteratively includes or removes each variable from the model to tell you if it is worth including each variable or not. The best model will have the lowest RSS (Residual Sum of Squares) and AIC (Akaike Information Criterion).
+Step() iteratively includes or removes each variable from the model to tell you if it is worth including each variable or not. The best model will have the lowest RSS (Residual Sum of Squares) and AIC (Akaike Information Criterion). Stepwise regression is useful for feature selection but may lead to overfitting.
 
 ```{r}
 forward_model <- step(train_model, direction = "forward")
@@ -133,7 +133,7 @@ summary(stepwise_model)
 ```
 
 ```{r}
-backward_model <- step(train_model, direction = "both")
+backward_model <- step(train_model, direction = "backward")
 
 summary(backward_model)
 ```
@@ -142,52 +142,30 @@ Model analysis:
 Residuals vs. Fitted should look like random scatter centered around 0.
 Q-Q Residuals should fall along the diagonal line to indicate a normal distribution of residuals.
 Scale-Location should look like random scatter around a straight line indicating similar variance in residuals.
-Residuals vs. Leverage should look like a random scatter around a line.
+Residuals vs. Leverage helps you look for points with high leverage and large residuals—these may overly influence the model.
 ```{r}
 plot(train_model)
 ```
 
 Lets put our model to use by making predictions! First lets fit the model to the test data set part of the 20% split.
-```{r}
-perIndex <- test_df$Performance.Index
-hours <- test_df$Hours.Studied
-scores <- test_df$Previous.Score
-extra <- test_df$Extracurricular.Activities
-sleep <- test_df$Sleep.Hours
-practice <- test_df$Sample.Question.Papers.Practiced
-test_model <- lm(perIndex ~ hours + scores + extra + sleep + practice, data = test_df)
-```
-
-```{r}
-summary(test_model)
-```
 
 Predict values
 ```{r}
-pred_df<- test_df[, !names(test_df) %in% 'Performance.Index']
-predictions <- predict(test_model, data= pred_df)
-print(head(predictions))
-```
+predictions <- predict(train_model, newdata = test_df)
+actual <- test_df$Performance.Index
 
-Calculate sqrt(MSE) which is a value that tells us the average amount of deviation from true values.
-```{r}
-mse <- sqrt(mean((perIndex - predictions)^2))
+results_df <- data.frame(predictions = predictions, actual = actual)
 
-print(mse)
-```
-
-Create data frame to show our predictions with their corresponding actual values.
-```{r}
-results_df <- data.frame(Actual= perIndex, Predicted =predictions)
-print(head(results_df))
+head(results_df)
 ```
 
 Individual prediction of a student:
 ```{r}
-singleStudent<- data.frame(hours=10, scores=79, extra=1, sleep=6, practice=2)
+singleStudent <- data.frame(Hours.Studied = 6, Previous.Scores = 75, Extracurricular.Activities = 0, Sleep.Hours = 7.5, Sample.Question.Papers.Practiced = 2)
+
 print(singleStudent)
 
-predicted_value <- predict(test_model, newdata= singleStudent)
+predicted_value <- predict(train_model, newdata= singleStudent)
 print(predicted_value)
 ```
 
@@ -195,34 +173,36 @@ Accuracy Check
 
 Calculate Root Mean Squared Error which is a value that tells us the average amount of deviation from true values. We use this to compare performance across different models. This value is sensitive to larger differences, so we still encounter differences greater than the resulting RMSE.
 ```{r}
-mse <- sqrt(mean((perIndex - predictions)^2))
-
-print(mse)
+rmse <- sqrt(mean((actual - predictions)^2))
+print(rmse)
 ```
 
 Average difference between Predicted vs. Actual
 ```{r}
-absDiff <- abs(results_df$Actual-results_df$Predicted)
-meanDiff <- sum(absDiff)/length(absDiff)
+absDiff <- abs(results_df$actual-results_df$predictions)
+meanDiff <- mean(absDiff)
 print(meanDiff)
 ```
 
 Check for values within certain ranges
 ```{r}
 withinX <- ifelse(absDiff < 3, 1, 0)
-print(sum(withinX)/length(withinX))
+print(mean(withinX))
 ```
 
 Check for values within certain percentages
 ```{r}
-accuracyWithinX <- ifelse(abs(results_df$Predicted-results_df$Actual) < 0.10*results_df$Actual,1,0)
-print(sum(accuracyWithinX/length(accuracyWithinX)))
+accuracyWithinX <- ifelse(abs(results_df$predictions-results_df$actual) < 0.10*results_df$actual,1,0)
+print(mean(accuracyWithinX))
 ```
 
-
-
-
-
+Calculate R^2 Value
+```{r}
+SSE <- sum((predictions - actual)^2)
+SST <- sum((actual - mean(actual))^2)
+rsq <- 1 - SSE/SST
+print(rsq)
+```
 
 
 
