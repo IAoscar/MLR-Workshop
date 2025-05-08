@@ -1,13 +1,12 @@
 ---
 title: "Predicting Student Performance with Multiple Linear Regression"
-author: "Your Name Here"
-date: "2025-05-08"
+author: "Your Name"
 output: html_document
 ---
 
 Input data set using read.csv()
 ```{r}
-df <- read.csv("", header = TRUE)
+df <- read.csv()
 ```
 
 To find your file path make sure the csv file is located on your desktop for easy access. 
@@ -20,7 +19,7 @@ The general format for a file path for a file that is on your desktop is:
 
 Use str() to get info on the data
 ```{r}
-str(___)
+str()
 ```
 
 Lets clean this data set!
@@ -32,17 +31,17 @@ When cleaning data we have to consider many potential defects with our data, the
 
 How many missing values does this data set have?
 ```{r}
-sum(is.na(___))
+sum()
 ```
 
 Where are the missing values?
 ```{r}
-colSums(___)
+colSums()
 ```
 
 Use na.omit() to remove rows with missing data
 ```{r}
-noMissingValues_df <- na.omit(___)
+noMissingValues_df <- na.omit()
 
 nrow()
 ```
@@ -51,62 +50,63 @@ Question: Data is valuable and expensive, what are some workarounds if we didn't
 
 How many duplicates?
 ```{r}
-dupeSum <- sum(duplicated(___))
+dupeSum <- sum()
 dupeSum
 ```
 
 Remove duplicates
 ```{r}
-noDupes_df <- unique(___)
+noDupes_df <- unique()
 
-rowCount <- nrow(___)
+rowCount <- nrow()
 rowCount
 ```
 
 Binary encoding: turn "Yes" & "No" into 1 & 0 so our model can function properly.
 ```{r}
 binaryEncoded_df <-noDupes_df
-binaryEncoded_df$____ <- ifelse(binaryEncoded_df$____ == "Yes", 1, 0)
+binaryEncoded_df$Extracurricular.Activities <- ifelse(, 1, 0)
 
 clean_df <- binaryEncoded_df
-print()
+print(head())
 ```
 
 Remove target variable for multicollinearity analysis:
-To put it simply, multicollinearity is a problem caused when two or more predictor variables in your model have a high correlation. Correlation between predictors is bad, but correlation from predictor to target is great! 
+To put it simply, multicollinearity is a problem caused when two or more predictor variables in your model have a high correlation. Correlation between predictors can be bad, but correlation from predictor to target is great! 
 ```{r}
-variable_df<- clean_df[, !names(clean_df) %in% '___']
-print(head())
+variable_df<- clean_df[]
+print(head(variable_df))
 ```
 
 Create correlation matrix: correlation values range from -1 to 1. A number closer to 1 or -1 indicates high correlation, while a number closer to 0 indicates low correlation. The diagonal of 1's is to be expected as a variable is perfectly correleted with itself. 
 ```{r}
-corrmat <- cor(___)
+corrmat <- cor()
 print(corrmat)
 ```
 
 Correlation Heatmap: since the above matrix is difficult to read, we can visualize it by creating a heatmap.
 ```{r}
 #install.packages("corrplot")
-library(____)
-corrplot(corrmat, method = "color", type = "full", 
+library(corrplot)
+corrplot(, method = "color", type = "full", 
          col = colorRampPalette(c("red", "gold", "blue"))(200),
          tl.cex = 0.6, tl.col = "black", title = "Correlation Heatmap")
 ```
 
 80-20 Data Split: We must split our data in order to train it on the 80% and test it on the 20%. This is a very common split used in data science.
 ```{r}
-nrows <- nrow(___)
-trainsize <- round(0.8*nrows)
-trainindex <- sample(1:nrows, trainsize, replace = FALSE)
+set.seed(123)
+nrows <- nrow()
+trainsize <- round()
+trainindex <- sample()
 
-train_df <- clean_df[trainindex, ]
-test_df <- clean_df[-trainindex, ]
+train_df <- clean_df[, ]
+test_df <- clean_df[, ]
 ```
 
 Build model
 ```{r}
-train_model <- lm(____)
+train_model <- lm()
 
 summary(train_model)
 ```
@@ -114,73 +114,58 @@ summary(train_model)
 Variance Inflation Factors (VIF): VIFs are values that measure collinearity. We want these values as close to 1 as possible.
 ```{r}
 #install.packages("car")
-library(___)
-vif(___)
+library()
+vif()
 ```
 
-Step() iteratively includes or removes each variable from the model to tell you if it is worth including each variable or not. The best model will have the lowest RSS (Residual Sum of Squares) and AIC (Akaike Information Criterion).
+Step() iteratively includes or removes each variable from the model to tell you if it is worth including each variable or not. The best model will have the lowest RSS (Residual Sum of Squares) and AIC (Akaike Information Criterion). Stepwise regression is useful for feature selection but may lead to overfitting.
 
 ```{r}
-forward_model <- step(___, direction = "forward")
+forward_model <- step(, direction = "")
 
 summary(forward_model)
 ```
 
 ```{r}
-stepwise_model <- step(train_model, direction = "___")
+stepwise_model <- step(, direction = "")
 
 summary(stepwise_model)
 ```
 
 ```{r}
-backward_model <- step(train_model, direction = "both")
+backward_model <- step(, direction = "")
 
-summary(___)
+summary(backward_model)
 ```
 
 Model analysis:
 Residuals vs. Fitted should look like random scatter centered around 0.
 Q-Q Residuals should fall along the diagonal line to indicate a normal distribution of residuals.
 Scale-Location should look like random scatter around a straight line indicating similar variance in residuals.
-Residuals vs. Leverage should look like a random scatter around a line.
+Residuals vs. Leverage helps you look for points with high leverage and large residuals—these may overly influence the model.
 ```{r}
-plot(___)
+plot()
 ```
 
-Lets put our model to use by making predictions! First lets fit the model to the test data set part of the 20% split.
-```{r}
-perIndex <- test_df$Performance.Index
-hours <- test_df$Hours.Studied
-scores <- test_df$Previous.Score
-extra <- test_df$Extracurricular.Activities
-sleep <- test_df$Sleep.Hours
-practice <- test_df$Sample.Question.Papers.Practiced
-test_model <- lm(perIndex ~ hours + scores + extra + sleep + practice, data = test_df)
-```
-
-```{r}
-summary(test_model)
-```
+Lets put our model to use by making predictions!
 
 Predict values
 ```{r}
-pred_df<- test_df[, !names(test_df) %in% 'Performance.Index']
-predictions <- predict(___, data= ___)
-print(head(predictions))
-```
+predictions <- predict(, newdata = )
+actual <- test_df$Performance.Index
 
-Create data frame to show our predictions with their corresponding actual values.
-```{r}
-results_df <- data.frame(Actual= perIndex, Predicted =predictions)
-print(head(results_df))
+results_df <- data.frame(predictions = predictions, actual = actual)
+
+head()
 ```
 
 Individual prediction of a student:
 ```{r}
-singleStudent<- data.frame(hours=_, scores=_, extra=_, sleep=_, practice=_)
+singleStudent <- data.frame()
+
 print(singleStudent)
 
-predicted_value <- predict(test_model, newdata= singleStudent)
+predicted_value <- predict(train_model, newdata= )
 print(predicted_value)
 ```
 
@@ -188,36 +173,33 @@ Accuracy Check
 
 Calculate Root Mean Squared Error which is a value that tells us the average amount of deviation from true values. We use this to compare performance across different models. This value is sensitive to larger differences, so we still encounter differences greater than the resulting RMSE.
 ```{r}
-mse <- sqrt(mean((___ - ___)^2))
-
-print(mse)
+rmse <- sqrt(mean(()^2))
+print(rmse)
 ```
 
 Average difference between Predicted vs. Actual
 ```{r}
-absDiff <- abs(results_df$Actual-results_df$Predicted)
-meanDiff <- sum(absDiff)/length(absDiff)
-print(___)
+absDiff <- abs()
+meanDiff <- mean(absDiff)
+print(meanDiff)
 ```
 
 Check for values within certain ranges
 ```{r}
-withinX <- ifelse(absDiff < _, 1, 0)
-print(sum(___)/length(___))
+withinX <- ifelse(absDiff < , , )
+print(mean())
 ```
 
 Check for values within certain percentages
 ```{r}
-accuracyWithinX <- ifelse(abs(results_df$Predicted-results_df$Actual) < _*results_df$Actual,1,0)
-print(sum(accuracyWithinX/length(accuracyWithinX)))
+accuracyWithinX <- ifelse(,1,0)
+print(mean(accuracyWithinX))
 ```
 
-
-
-
-
-
-
-
-
-
+Calculate R^2 Value
+```{r}
+SSE <- sum(()^2)
+SST <- sum(( - mean())^2)
+rsq <- 1 - SSE/SST
+print()
+```
