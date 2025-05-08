@@ -147,7 +147,7 @@ Residuals vs. Leverage helps you look for points with high leverage and large re
 plot(train_model)
 ```
 
-Lets put our model to use by making predictions! First lets fit the model to the test data set part of the 20% split.
+Lets put our model to use by making predictions!
 
 Predict values
 ```{r}
